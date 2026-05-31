@@ -3,8 +3,8 @@ use soroban_sdk::{contracttype, Address, String};
 #[derive(Clone, Debug, Default, PartialEq, Eq, Copy)]
 #[contracttype]
 pub enum ProgramStatus {
-    #[default]
     Draft,
+    #[default]
     Active,
     Completed,
     Cancelled,
@@ -16,6 +16,7 @@ pub enum MilestoneStatus {
     #[default]
     Pending,
     Approved,
+    Paid,
     Released,
     Cancelled,
 }
@@ -51,6 +52,8 @@ pub struct Milestone {
 
 #[contracttype]
 pub enum DataKey {
+    ProgramStatus,
+    MilestoneStatus,
     Program(u64),
     Milestone(u64, u64),
     ProgramCount,
