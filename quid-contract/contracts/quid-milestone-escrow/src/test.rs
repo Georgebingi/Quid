@@ -3,7 +3,7 @@
 use super::*;
 use crate::types::{Milestone, MilestoneStatus, Program, ProgramStatus};
 use soroban_sdk::{
-    testutils::Address as _,
+    testutils::{Address as _, Events},
     token::{Client as TokenClient, StellarAssetClient},
     Address, Env, String,
 };
@@ -49,7 +49,7 @@ fn test_status_storage_roundtrip() {
 
 #[test]
 fn test_create_program_funds_and_stores_active_program() {
-    let (env, contract_id, sponsor, token_address) = setup_test_env();
+    let (env, contract_id, sponsor, token_address, _) = setup_test_env();
     let client = QuidMilestoneEscrowContractClient::new(&env, &contract_id);
     let token_client = TokenClient::new(&env, &token_address);
     let recipient = Address::generate(&env);
@@ -92,7 +92,7 @@ fn test_create_program_funds_and_stores_active_program() {
 #[test]
 #[should_panic(expected = "Error(Contract, #2)")]
 fn test_create_program_rejects_zero_amount() {
-    let (env, contract_id, sponsor, token_address) = setup_test_env();
+    let (env, contract_id, sponsor, token_address, _) = setup_test_env();
     let client = QuidMilestoneEscrowContractClient::new(&env, &contract_id);
     let recipient = Address::generate(&env);
 
@@ -102,7 +102,7 @@ fn test_create_program_rejects_zero_amount() {
 #[test]
 #[should_panic(expected = "Error(Contract, #3)")]
 fn test_get_program_not_found() {
-    let (env, contract_id, _sponsor, _token_address) = setup_test_env();
+    let (env, contract_id, _sponsor, _token_address, _) = setup_test_env();
     let client = QuidMilestoneEscrowContractClient::new(&env, &contract_id);
 
     let _ = client.get_program(&999);
