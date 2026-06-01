@@ -86,6 +86,75 @@ fn test_create_program_funds_and_stores_active_program() {
 }
 
 #[test]
+fn test_add_milestone_stores_and_updates_program_totals() {
+    let (env, contract_id, sponsor, token_address) = setup_test_env();
+    let client = QuidMilestoneEscrowContractClient::new(&env, &contract_id);
+    let recipient = Address::generate(&env);
+    let total_amount = 500;
+    let milestone_amount = 200;
+    let due_at = 1_750_000_000;
+
+    let program_id = client.create_program(
+        &sponsor,
+        &recipient,
+        &token_address,
+        &total_amount,
+        &None,
+        &None,
+    );
+    let milestone_id = client.add_milestone(
+        &program_id,
+        &String::from_str(&env, "Design complete"),
+        &milestone_amount,
+        &due_at,
+        &String::from_str(&env, "QmMilestone"),
+    );
+
+    assert_eq!(milestone_id, 1);
+
+    let program = client.get_program(&program_id);
+    assert_eq!(program.allocated_amount, milestone_amount);
+    assert_eq!(program.milestone_count, 1);
+
+    let milestone = client.get_milestone(&program_id, &milestone_id);
+    assert_eq!(milestone.id, milestone_id);
+    assert_eq!(milestone.program_id, program_id);
+    assert_eq!(milestone.title, String::from_str(&env, "Design complete"));
+    assert_eq!(milestone.amount, milestone_amount);
+    assert_eq!(milestone.due_at, due_at);
+    assert_eq!(
+        milestone.metadata_cid,
+        String::from_str(&env, "QmMilestone")
+    );
+    assert_eq!(milestone.status, MilestoneStatus::Pending);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #2)")]
+fn test_add_milestone_rejects_over_allocation() {
+    let (env, contract_id, sponsor, token_address) = setup_test_env();
+    let client = QuidMilestoneEscrowContractClient::new(&env, &contract_id);
+    let recipient = Address::generate(&env);
+    let total_amount = 500;
+
+    let program_id = client.create_program(
+        &sponsor,
+        &recipient,
+        &token_address,
+        &total_amount,
+        &None,
+        &None,
+    );
+    let _ = client.add_milestone(
+        &program_id,
+        &String::from_str(&env, "Too large"),
+        &501,
+        &1_750_000_000,
+        &String::from_str(&env, "QmMilestone"),
+    );
+}
+
+#[test]
 #[should_panic(expected = "Error(Contract, #2)")]
 fn test_create_program_rejects_zero_amount() {
     let (env, contract_id, sponsor, token_address) = setup_test_env();
